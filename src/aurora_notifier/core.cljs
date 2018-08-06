@@ -26,15 +26,6 @@
                      keys
                      set))
 
-(defn parse [{:keys [station] :as context} html]
-  (let [$      (.load cheerio html)
-        colors (-> ($ (gstring/format "tr:contains('%s')" station))
-                   .children
-                   (.map (fn [i el] (.attr ($ el) "bgcolor")))
-                   (.get))]
-    (p/promise (merge context {:colors colors
-                               :html   html}))))
-
 (defn ->message [{:keys [station color]}]
   (let [strength (get strengths color)]
     (gstring/format "%s aurora action in %s!" strength station)))
@@ -75,9 +66,21 @@
     (notify (merge context {:color color}))
     (gstring/format "Nothing going on in %s" station)))
 
-(defn check-auroras* [{:keys [url] :as context}]
+(defn parse [{:keys [html station] :as context}]
+  (let [$      (.load cheerio html)
+        colors (-> ($ (gstring/format "tr:contains('%s')" station))
+                   .children
+                   (.map (fn [i el] (.attr ($ el) "bgcolor")))
+                   (.get))]
+    (p/promise (merge context {:colors colors}))))
+
+(defn fetch-data [{:keys [url] :as context}]
   (-> (rp url)
-      (p/then (partial parse context))
+      (p/then #(merge context {:html %}))))
+
+(defn check-auroras* [context]
+  (-> (fetch-data context)
+      (p/then parse)
       (p/then maybe-notify)
       (p/then println)))
 
@@ -91,4 +94,12 @@
          :email        (gobj/get js/process.env "EMAIL_RECIPIENT")
          :email-sender (gobj/get js/process.env "EMAIL_SENDER")}]
     (println "Checking if there's aurora activity in" (:station context))
+    (check-auroras* context)))
+
+(comment
+  (let [context {:url "http://aurorasnow.fmi.fi/public_service/magforecast_fi.html"
+                 :method "email"
+                 :email "valtteri.harmainen@gmail.com"
+                 :email-sender "valtteri.harmainen@gmail.com"
+                 :station "Hankasalmi"}]
     (check-auroras* context)))
