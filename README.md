@@ -1,0 +1,1 @@
+# finland-aurora-notifier-lambda
