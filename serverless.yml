@@ -10,8 +10,8 @@ provider:
     SDELIVERY_METHOD: ${env:DELIVERY_METHOD}
     EMAIL_RECIPIENT: ${env:EMAIL_RECIPIENT}
     EMAIL_SENDER: ${env:EMAIL_SENDER}
-    SMS_PHONE_NUMBER: ${env:SMS_PHONE_NUMBER
-    SMS_SENDER_ID: ${env:SMS_SENDER_ID
+    SMS_PHONE_NUMBER: ${env:SMS_PHONE_NUMBER}
+    SMS_SENDER_ID: ${env:SMS_SENDER_ID}
   iamRoleStatements:
     - Effect: "Allow"
       Action:
