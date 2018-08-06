@@ -3,6 +3,7 @@ service: finland-aurora-notifier
 provider:
   name: aws
   runtime: nodejs8.10
+  region: ${env:AWS_REGION}
   environment:
     SCRAPE_URL: ${env:SCRAPE_URL}
     STATION: ${env:STATION}
