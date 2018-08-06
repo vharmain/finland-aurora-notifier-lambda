@@ -95,11 +95,3 @@
          :email-sender (gobj/get js/process.env "EMAIL_SENDER")}]
     (println "Checking if there's aurora activity in" (:station context))
     (check-auroras* context)))
-
-(comment
-  (let [context {:url "http://aurorasnow.fmi.fi/public_service/magforecast_fi.html"
-                 :method "email"
-                 :email "valtteri.harmainen@gmail.com"
-                 :email-sender "valtteri.harmainen@gmail.com"
-                 :station "Hankasalmi"}]
-    (check-auroras* context)))
