@@ -1,0 +1,32 @@
+service: finland-aurora-notifier
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    SCRAPE_URL: ${env:SCRAPE_URL}
+    STATION: ${env:STATION}
+    SDELIVERY_METHOD: ${env:DELIVERY_METHOD}
+    EMAIL_RECIPIENT: ${env:EMAIL_RECIPIENT}
+    EMAIL_SENDER: ${env:EMAIL_SENDER}
+    SMS_PHONE_NUMBER: ${env:SMS_PHONE_NUMBER
+    SMS_SENDER_ID: ${env:SMS_SENDER_ID
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+       - sns:Publish # SMS
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+       - ses:sendEmail
+      Resource: "*"
+
+functions:
+  check-auroras:
+    cljs: aurora-notifier.core/check-auroras
+    events:
+      # cron(Minutes Hours Day-of-month Month Day-of-week Year)
+      - schedule: cron(0/15 18-23 * 1,2,3,4,8,9,10,11,12 ? *)
+
+plugins:
+  - serverless-cljs-plugin
