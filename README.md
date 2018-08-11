@@ -6,7 +6,23 @@ Read more information about the [forecast](http://aurorasnow.fmi.fi/public_servi
 
 The code is written for personal use.
 
-## Install Dependencies
+## Prerequisites
+
+* [lein](https://leiningen.org/#install)
+* [node](https://nodejs.org/en/download/)
+* [serverless](https://serverless.com/framework/docs/getting-started/)
+
+On a Mac you can install these easily with [Homebrew](https://brew.sh/).
+
+``` shell
+$ brew install leiningen
+$ brew install node
+
+# Once node is installed:
+$ npm install -g serverless
+```
+
+## Install dependencies
 
 ```shell
 $ lein deps
@@ -32,7 +48,7 @@ $ source .env.sh
 $ serverless deploy
 ```
 
-## Set Invoke Schedule
+## Set invoke schedule
 
 You can't see the auroras if the sky is not dark. Therefore it makes sense to trigger the check only during the aurora season and limit checks to evenings and nights.
 
