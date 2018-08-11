@@ -13,7 +13,7 @@
 (def sns (new AWS.SNS))
 (def ses (new AWS.SES))
 
-(def strengths
+(def thresholds
   {"#00FF00" "Low (green)"
    "#FFFF00" "Raised (yellow)"
    "#FFA500" "Moderate (orange)"
@@ -21,14 +21,14 @@
    "#800000" "Severe (brown)"})
 
 ;; Sensitivity can be adjusted here by selecting different codes.
-(def interesting (-> strengths
+(def interesting (-> thresholds
                      (select-keys ["#FFA500" "#FF0000" "#800000"])
                      keys
                      set))
 
 (defn ->message [{:keys [station color]}]
-  (let [strength (get strengths color)]
-    (gstring/format "%s aurora action in %s!" strength station)))
+  (let [threshold (get thresholds color)]
+    (gstring/format "%s aurora action in %s!" threshold station)))
 
 (defn send-sms [{:keys [phone-number sender-id] :as context}]
   (let [message (->message context)
@@ -39,7 +39,8 @@
                                       :StringValue sender-id}}}]
     (-> sns
         (.publish (clj->js params))
-        .promise)))
+        .promise
+        (p/then #(merge context {:result %})))))
 
 (defn send-email [{:keys [email email-sender html] :as context}]
   (let [message (->message context)
@@ -52,19 +53,20 @@
                  :Source email-sender}]
     (-> ses
         (.sendEmail (clj->js params))
-        .promise)))
+        .promise
+        (p/then #(merge context {:result %})))))
 
 (defn notify [{:keys [method] :as context}]
   (println "Interesting action detected. Notifying via" method)
   (case method
     "email" (send-email context)
     "sms"   (send-sms context)
-    (throw (js/Error. (gstring/format "Unkonwn delivery method" method)))))
+    (throw (js/Error. (gstring/format "Unkonwn delivery method '%'" method)))))
 
 (defn maybe-notify [{:keys [station colors] :as context}]
   (if-let [color (some interesting colors)]
     (notify (merge context {:color color}))
-    (gstring/format "Nothing going on in %s" station)))
+    {:result (gstring/format "Nothing going on in %s" station)}))
 
 (defn parse [{:keys [html station] :as context}]
   (let [$      (.load cheerio html)
@@ -82,7 +84,7 @@
   (-> (fetch-data context)
       (p/then parse)
       (p/then maybe-notify)
-      (p/then println)))
+      (p/then (comp println :result))))
 
 (deflambda check-auroras [event ctx]
   (let [context
