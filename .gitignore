@@ -8,3 +8,5 @@ pom.xml
 /node_modules
 .serverless/
 .env.sh
+.cljs_node_repl/
+.nrepl-port
