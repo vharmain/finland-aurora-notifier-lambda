@@ -6,12 +6,12 @@
 
  :plugins [[lein-npm                    "0.6.2"]
            [io.nervous/lein-cljs-lambda "0.6.6"]
-           [cider/cider-nrepl "0.18.0-snapshot"]]
+           [cider/cider-nrepl "0.21.1"]]
 
- :npm {:dependencies [[serverless-cljs-plugin "0.1.2"
-                       request-promise "4.2.2"
-                       request "2.87.0"
-                       cheerio "1.0.0-rc.2"]]
+ :npm {:dependencies [[serverless-cljs-plugin "0.2.2"
+                       request-promise "4.2.4"
+                       request "2.88.0"
+                       cheerio "1.0.0-rc.3"]]
        :devDependencies [[aws-sdk "2.286.2"]]}
 
  :profiles {:dev {:dependencies [[cider/piggieback "0.3.8"]]
