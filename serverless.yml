@@ -1,5 +1,12 @@
 service: finland-aurora-notifier
 
+package:
+  exclude:
+    - '**'
+    - '!node_modules/**'
+  include:
+    - target/main.js
+
 provider:
   name: aws
   runtime: nodejs10.x
@@ -24,10 +31,7 @@ provider:
 
 functions:
   check-auroras:
-    cljs: aurora-notifier.core/check-auroras
+    handler: target/main.check
     events:
       # cron(Minutes Hours Day-of-month Month Day-of-week Year)
       - schedule: cron(0/15 18-23 * 1,2,3,4,9,10,11,12 ? *)
-
-plugins:
-  - serverless-cljs-plugin

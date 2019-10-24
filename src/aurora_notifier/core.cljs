@@ -1,17 +1,14 @@
 (ns aurora-notifier.core
-  (:require [cljs-lambda.macros :refer-macros [deflambda]]
-            [cljs.nodejs :as nodejs]
-            [goog.object :as gobj]
-            [goog.string :as gstring]
-            [goog.string.format]
-            [promesa.core :as p]))
+  (:require
+   ["aws-sdk" :as AWS]
+   ["cheerio" :as cheerio]
+   ["node-fetch" :as node-fetch]
+   [goog.object :as gobj]
+   [goog.string :as gstring]
+   [goog.string.format]))
 
-(def rp (nodejs/require "request-promise"))
-(def AWS (nodejs/require "aws-sdk"))
-(def cheerio (nodejs/require "cheerio"))
-
-(def sns (new AWS.SNS))
-(def ses (new AWS.SES))
+(def sns (new AWS/SNS))
+(def ses (new AWS/SES))
 
 (def thresholds
   {"#00FF00" "Low (green)"
@@ -40,7 +37,7 @@
     (-> sns
         (.publish (clj->js params))
         .promise
-        (p/then #(merge context {:result %})))))
+        (.then #(assoc context :result %)))))
 
 (defn send-email [{:keys [email email-sender html] :as context}]
   (let [message (->message context)
@@ -54,7 +51,7 @@
     (-> ses
         (.sendEmail (clj->js params))
         .promise
-        (p/then #(merge context {:result %})))))
+        (.then #(assoc context :result %)))))
 
 (defn notify [{:keys [method] :as context}]
   (println "Interesting action detected. Notifying via" method)
@@ -72,21 +69,21 @@
   (let [$      (.load cheerio html)
         colors (-> ($ (gstring/format "tr:contains('%s')" station))
                    .children
-                   (.map (fn [i el] (.attr ($ el) "bgcolor")))
+                   (.map (fn [_i el] (.attr ($ el) "bgcolor")))
                    (.get))]
-    (p/promise (merge context {:colors colors}))))
+    (js/Promise.resolve (assoc context :colors colors))))
 
 (defn fetch-data [{:keys [url] :as context}]
-  (-> (rp url)
-      (p/then #(merge context {:html %}))))
+  (-> (node-fetch url)
+      (.then #(merge context {:html %}))))
 
 (defn check-auroras* [context]
   (-> (fetch-data context)
-      (p/then parse)
-      (p/then maybe-notify)
-      (p/then (comp println :result))))
+      (.then parse)
+      (.then maybe-notify)
+      (.then (comp println :result))))
 
-(deflambda check-auroras [event ctx]
+(defn check-auroras [_event _ctx]
   (let [context
         {:url          (gobj/get js/process.env "SCRAPE_URL")
          :station      (gobj/get js/process.env "STATION")

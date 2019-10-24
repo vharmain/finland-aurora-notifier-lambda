@@ -8,24 +8,18 @@ The code is written for personal use.
 
 ## Prerequisites
 
-* [lein](https://leiningen.org/#install)
 * [node](https://nodejs.org/en/download/)
-* [serverless](https://serverless.com/framework/docs/getting-started/)
 
-On a Mac you can install these easily with [Homebrew](https://brew.sh/).
+On a Mac you can install node easily with [Homebrew](https://brew.sh/).
 
 ``` shell
-$ brew install leiningen
 $ brew install node
-
-# Once node is installed:
-$ npm install -g serverless
 ```
 
 ## Install dependencies
 
 ```shell
-$ lein deps
+$ npm install
 ```
 
 ## SES email setup
@@ -45,7 +39,7 @@ $ $EDITOR .env.sh
 
 ```shell
 $ source .env.sh
-$ serverless deploy
+$ npm run deploy
 ```
 
 ## Set invoke schedule
