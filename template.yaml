@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Finland Aurora Notifier - sends notifications when aurora activity is detected
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs24.x
+    Architectures:
+      - arm64
+
+Parameters:
+  ScrapeUrl:
+    Type: String
+    Description: URL to scrape for aurora data
+  Station:
+    Type: String
+    Description: Observation station name
+  DeliveryMethod:
+    Type: String
+    Description: Notification delivery method (email or sms)
+    AllowedValues:
+      - email
+      - sms
+  EmailRecipient:
+    Type: String
+    Description: Email recipient address
+    Default: ''
+  EmailSender:
+    Type: String
+    Description: Email sender address
+    Default: ''
+  SmsPhoneNumber:
+    Type: String
+    Description: SMS phone number
+    Default: ''
+  SmsSenderId:
+    Type: String
+    Description: SMS sender ID (max 11 alphanumeric characters)
+    Default: ''
+
+Resources:
+  CheckAurorasFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: finland-aurora-notifier
+      Handler: target/main.check
+      CodeUri: .
+      Environment:
+        Variables:
+          SCRAPE_URL: !Ref ScrapeUrl
+          STATION: !Ref Station
+          DELIVERY_METHOD: !Ref DeliveryMethod
+          EMAIL_RECIPIENT: !Ref EmailRecipient
+          EMAIL_SENDER: !Ref EmailSender
+          SMS_PHONE_NUMBER: !Ref SmsPhoneNumber
+          SMS_SENDER_ID: !Ref SmsSenderId
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+              Resource: '*'
+      Events:
+        ScheduledCheck:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0/15 18-23 * 1,2,3,4,9,10,11,12 ? *)
+            Description: Check aurora activity every 15 minutes during evening hours in aurora season
+
+Outputs:
+  CheckAurorasFunctionArn:
+    Description: ARN of the Check Auroras function
+    Value: !GetAtt CheckAurorasFunction.Arn

@@ -1,19 +1,23 @@
 {
   "name": "finland-aurora-notifier-lambda",
-  "version": "0.0.1",
-  "description": "AWS Lambda web-scraper which sends notification to pre-defined email/sms address if the [Finnish Meteorological Institute Aurora Forecast](http://aurorasnow.fmi.fi/public_service/magforecast_en.html) shows promising activity at selected observation station.",
-  "main": "index.js",
+  "version": "0.0.2",
+  "description": "AWS Lambda web-scraper which sends notification to pre-defined email/sms address if the Finnish Meteorological Institute Aurora Forecast shows promising activity at selected observation station.",
+  "main": "target/main.js",
   "dependencies": {
-    "cheerio": "^1.0.0-rc.3",
-    "node-fetch": "^2.6.1"
+    "@aws-sdk/client-ses": "^3.726.0",
+    "@aws-sdk/client-sns": "^3.726.0",
+    "cheerio": "^1.0.0"
   },
   "devDependencies": {
-    "aws-sdk": "^2.555.0",
-    "shadow-cljs": "^2.8.67"
+    "esbuild": "^0.24.2",
+    "shadow-cljs": "^2.28.20"
   },
   "scripts": {
-    "deploy": "npx shadow-cljs release :lib && npx serverless deploy",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx shadow-cljs release :lib",
+    "watch": "npx shadow-cljs watch :lib",
+    "sam-build": "sam build",
+    "deploy": "sam build && sam deploy --parameter-overrides \"ScrapeUrl=$SCRAPE_URL\" \"Station=$STATION\" \"DeliveryMethod=$DELIVERY_METHOD\" \"EmailRecipient=$EMAIL_RECIPIENT\" \"EmailSender=$EMAIL_SENDER\" \"SmsPhoneNumber=$SMS_PHONE_NUMBER\" \"SmsSenderId=$SMS_SENDER_ID\" --region $AWS_REGION",
+    "invoke-local": "sam build && sam local invoke CheckAurorasFunction --parameter-overrides \"ScrapeUrl=$SCRAPE_URL\" \"Station=$STATION\" \"DeliveryMethod=$DELIVERY_METHOD\" \"EmailRecipient=$EMAIL_RECIPIENT\" \"EmailSender=$EMAIL_SENDER\" \"SmsPhoneNumber=$SMS_PHONE_NUMBER\" \"SmsSenderId=$SMS_SENDER_ID\""
   },
   "repository": {
     "type": "git",

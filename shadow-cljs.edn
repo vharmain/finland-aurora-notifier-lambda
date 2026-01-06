@@ -2,7 +2,8 @@
  :dependencies []
  :builds
  {:lib
-  {:output-to "target/main.js"
-   :target    :node-library
+  {:output-to  "target/main.js"
+   :target     :node-library
+   :compiler-options {:optimizations :simple}
    :js-options {:js-provider :require}
-   :exports   {:check aurora-notifier.core/check-auroras}}}}
+   :exports    {:check aurora-notifier.core/check-auroras}}}}

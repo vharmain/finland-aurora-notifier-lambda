@@ -1,0 +1,11 @@
+# SAM CLI configuration file
+# Run: sam deploy to use these defaults
+
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "finland-aurora-notifier"
+resolve_s3 = true
+s3_prefix = "finland-aurora-notifier"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"

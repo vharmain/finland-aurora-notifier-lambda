@@ -1,14 +1,14 @@
 (ns aurora-notifier.core
   (:require
-   ["aws-sdk" :as AWS]
+   ["@aws-sdk/client-ses" :refer [SESClient SendEmailCommand]]
+   ["@aws-sdk/client-sns" :refer [SNSClient PublishCommand]]
    ["cheerio" :as cheerio]
-   ["node-fetch" :as node-fetch]
    [goog.object :as gobj]
    [goog.string :as gstring]
    [goog.string.format]))
 
-(def sns (new AWS/SNS))
-(def ses (new AWS/SES))
+(def sns (SNSClient.))
+(def ses (SESClient.))
 
 (def thresholds
   {"#00FF00" "Low (green)"
@@ -33,10 +33,9 @@
                  :PhoneNumber       phone-number
                  :MessageAttributes {"AWS.SNS.SMS.SenderID"
                                      {:DataType    "String"
-                                      :StringValue sender-id}}}]
-    (-> sns
-        (.publish (clj->js params))
-        .promise
+                                      :StringValue sender-id}}}
+        command (PublishCommand. (clj->js params))]
+    (-> (.send sns command)
         (.then #(assoc context :result %)))))
 
 (defn send-email [{:keys [email email-sender html] :as context}]
@@ -47,10 +46,9 @@
                  {:Subject {:Charset charset :Data message}
                   :Body    {:Html {:Charset charset :Data html}
                             :Text {:Charset charset :Data (pr-str context)}}}
-                 :Source email-sender}]
-    (-> ses
-        (.sendEmail (clj->js params))
-        .promise
+                 :Source email-sender}
+        command (SendEmailCommand. (clj->js params))]
+    (-> (.send ses command)
         (.then #(assoc context :result %)))))
 
 (defn notify [{:keys [method] :as context}]
@@ -69,12 +67,13 @@
   (let [$      (.load cheerio html)
         colors (-> ($ (gstring/format "tr:contains('%s')" station))
                    .children
-                   (.map (fn [_i el] (.attr ($ el) "bgcolor")))
+                   (.map (fn [_i el] (.attr ^js ($ el) "bgcolor")))
                    (.get))]
     (js/Promise.resolve (assoc context :colors colors))))
 
 (defn fetch-data [{:keys [url] :as context}]
-  (-> (node-fetch url)
+  (-> (js/fetch url)
+      (.then #(.text %))
       (.then #(merge context {:html %}))))
 
 (defn check-auroras* [context]
